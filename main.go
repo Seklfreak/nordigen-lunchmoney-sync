@@ -71,7 +71,7 @@ func main() {
 				zap.String("institution_name", account.InstitutionName),
 				zap.String("type", account.TypeName),
 				zap.String("subtype", account.SubtypeName),
-				zap.String("balance", account.Balance),
+				zap.Float64("balance", float64(account.Balance)),
 				zap.String("currency", account.Currency),
 			)
 		}

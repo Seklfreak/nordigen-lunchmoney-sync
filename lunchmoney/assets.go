@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,13 +18,28 @@ type Asset struct {
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 
 	// parameters to update.
-	TypeName        string     `json:"type_name,omitempty"`
-	SubtypeName     string     `json:"subtype_name,omitempty"`
-	Name            string     `json:"name,omitempty"`
-	Balance         string     `json:"balance,omitempty"` // TODO: Parse balance
-	BalanceAsOf     *time.Time `json:"balance_as_of,omitempty"`
-	Currency        string     `json:"currency,omitempty"`
-	InstitutionName string     `json:"institution_name,omitempty"`
+	TypeName        string       `json:"type_name,omitempty"`
+	SubtypeName     string       `json:"subtype_name,omitempty"`
+	Name            string       `json:"name,omitempty"`
+	Balance         AssetBalance `json:"balance,omitempty"`
+	BalanceAsOf     *time.Time   `json:"balance_as_of,omitempty"`
+	Currency        string       `json:"currency,omitempty"`
+	InstitutionName string       `json:"institution_name,omitempty"`
+}
+
+// AssetBalance represents the balance of an asset.
+type AssetBalance float64
+
+// UnmarshalJSON provides custom unmarshalling for AssetBalance.
+func (ab *AssetBalance) UnmarshalJSON(b []byte) (err error) {
+	amount, err := strconv.ParseFloat(strings.Trim(string(b), "\""), 64)
+	if err != nil {
+		return errors.Wrapf(err, "could not parse transaction amount value %q", strings.Trim(string(b), "\""))
+	}
+
+	*ab = AssetBalance(amount)
+
+	return nil
 }
 
 // GetAssets retrieves assets from the Lunchmoney API.
