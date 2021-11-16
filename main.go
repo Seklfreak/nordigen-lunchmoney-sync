@@ -62,36 +62,26 @@ func main() {
 		log.Fatal("failed to fetch transactions from nordigen", zap.Error(err))
 	}
 
-	allTransactions := append(transactions.Booked, transactions.Pending...)
-	log.Info("fetched transactions from Nordigen", zap.Int("total", len(allTransactions)))
+	log.Info("fetched transactions from Nordigen", zap.Int("total", len(transactions.Booked)+len(transactions.Pending)))
 
 	// prepare transactions to insert
-	lunchmoneyTransactions := make([]*lunchmoney.Transaction, 0, len(allTransactions))
+	lunchmoneyTransactions := make([]*lunchmoney.Transaction, 0, len(transactions.Booked)+len(transactions.Pending))
 
-	for _, trx := range allTransactions {
-		payee := trx.CreditorName
-		if payee == "" {
-			payee = trx.DebtorName
+	for _, trx := range transactions.Booked {
+		lmTrx, err := createLunchmoneyTrx(trx, config.LunchmoneyAssetID, lunchmoney.TransactionStatusCleared)
+		if err != nil {
+			log.Fatal("unable to create proper lunchmoney transaction",
+				zap.Any("lunchmoney_trx", lmTrx),
+				zap.Any("source_transaction", trx),
+			)
 		}
 
-		lmTrx := &lunchmoney.Transaction{
-			AssetID: config.LunchmoneyAssetID,
+		lunchmoneyTransactions = append(lunchmoneyTransactions, lmTrx)
+	}
 
-			Amount:     float64(trx.TransactionAmount.Amount),
-			Currency:   strings.ToLower(trx.TransactionAmount.Currency),
-			Date:       lunchmoney.TransactionDate(trx.ValueDate),
-			Payee:      payee,
-			Notes:      strings.Join(trx.RemittanceInformationUnstructuredArray, "; "),
-			Status:     lunchmoney.TransactionStatusCleared, // TODO: set uncleared for pending transactions
-			ExternalID: trx.TransactionID,
-		}
-
-		if lmTrx.AssetID <= 0 ||
-			lmTrx.Amount == 0 ||
-			lmTrx.Currency == "" ||
-			time.Time(lmTrx.Date).IsZero() ||
-			lmTrx.Payee == "" ||
-			lmTrx.ExternalID == "" {
+	for _, trx := range transactions.Pending {
+		lmTrx, err := createLunchmoneyTrx(trx, config.LunchmoneyAssetID, lunchmoney.TransactionStatusUncleared)
+		if err != nil {
 			log.Fatal("unable to create proper lunchmoney transaction",
 				zap.Any("lunchmoney_trx", lmTrx),
 				zap.Any("source_transaction", trx),
@@ -128,4 +118,38 @@ func main() {
 
 		log.Info("inserted transactions", zap.Int("inserted_count", inserted), zap.Int("chunk_size", len(chunk)))
 	}
+}
+
+func createLunchmoneyTrx(
+	trx nordigen.Transaction,
+	lunchmoneyAssetID int,
+	trxStatus lunchmoney.TransactionStatus,
+) (*lunchmoney.Transaction, error) {
+	payee := trx.CreditorName
+	if payee == "" {
+		payee = trx.DebtorName
+	}
+
+	lmTrx := &lunchmoney.Transaction{
+		AssetID: lunchmoneyAssetID,
+
+		Amount:     float64(trx.TransactionAmount.Amount),
+		Currency:   strings.ToLower(trx.TransactionAmount.Currency),
+		Date:       lunchmoney.TransactionDate(trx.ValueDate),
+		Payee:      payee,
+		Notes:      strings.Join(trx.RemittanceInformationUnstructuredArray, "; "),
+		Status:     trxStatus,
+		ExternalID: trx.TransactionID,
+	}
+
+	if lmTrx.AssetID <= 0 ||
+		lmTrx.Amount == 0 ||
+		lmTrx.Currency == "" ||
+		time.Time(lmTrx.Date).IsZero() ||
+		lmTrx.Payee == "" ||
+		lmTrx.ExternalID == "" {
+		return lmTrx, errors.New("created lunchmoney transaction failed validation")
+	}
+
+	return lmTrx, nil
 }
