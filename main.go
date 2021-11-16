@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Seklfreak/nordigen-lunchmoney-sync/lunchmoney"
 	"github.com/Seklfreak/nordigen-lunchmoney-sync/nordigen"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/pkg/errors"
@@ -24,6 +25,8 @@ func main() {
 	var config struct {
 		Nordigen          *nordigen.Config `envconfig:"NORDIGEN" required:"true"`
 		NordigenAccountID string           `envconfig:"NORDIGEN_ACCOUNT_ID" required:"true"`
+
+		LunchmoneyAccessToken string `envconfig:"LUNCHMONEY_ACCESS_TOKEN"`
 	}
 	err = envconfig.Process("", &config)
 	if err != nil {
@@ -41,8 +44,18 @@ func main() {
 		log.Fatal("failed to create nordigen client", zap.Error(err))
 	}
 
+	// create Lunchmoney client
+	lunchmoneyClient := lunchmoney.NewClient(
+		config.LunchmoneyAccessToken,
+		&http.Client{
+			Timeout: 60 * time.Second,
+		},
+	)
+
+	ctx := context.Background()
+
 	// fetch transactions from Nordigen
-	transactions, err := nordigenClient.Transactions(context.Background(), config.NordigenAccountID)
+	transactions, err := nordigenClient.Transactions(ctx, config.NordigenAccountID)
 	if err != nil {
 		log.Fatal("failed to fetch transactions from nordigen", zap.Error(err))
 	}
@@ -54,5 +67,15 @@ func main() {
 
 	for _, trx := range transactions.Pending {
 		log.Info("pending transaction", zap.Any("transaction", trx), zap.Time("value_date", time.Time(trx.ValueDate)))
+	}
+
+	// fetch assets from Lunchmoney
+	assets, err := lunchmoneyClient.GetAssets(ctx)
+	if err != nil {
+		log.Fatal("failed to fetch assets from lunchmoney", zap.Error(err))
+	}
+
+	for _, asset := range assets {
+		log.Info("asset", zap.Any("asset", asset))
 	}
 }
