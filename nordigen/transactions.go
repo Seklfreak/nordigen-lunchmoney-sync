@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 )
@@ -22,25 +21,19 @@ type Transactions struct {
 type Transaction struct {
 	TransactionID string `json:"transactionId"`
 
-	TransactionAmount TransactionAmount   `json:"transactionAmount"`
+	TransactionAmount Amount              `json:"transactionAmount"`
 	CurrencyExchange  []*CurrencyExchange `json:"currencyExchange"`
 
-	BankTransactionCode                    string          `json:"bankTransactionCode"`
-	RemittanceInformationUnstructuredArray []string        `json:"remittanceInformationUnstructuredArray"`
-	BookingDate                            TransactionDate `json:"bookingDate"`
-	ValueDate                              TransactionDate `json:"valueDate"`
+	BankTransactionCode                    string   `json:"bankTransactionCode"`
+	RemittanceInformationUnstructuredArray []string `json:"remittanceInformationUnstructuredArray"`
+	BookingDate                            Date     `json:"bookingDate"`
+	ValueDate                              Date     `json:"valueDate"`
 
 	DebtorName    string       `json:"debtorName"`
 	DebtorAccount *IBANAccount `json:"debtorAccount"`
 
 	CreditorName    string       `json:"creditorName"`
 	CreditorAccount *IBANAccount `json:"creditorAccount"`
-}
-
-// TransactionAmount represents the amount of a transaction.
-type TransactionAmount struct {
-	Amount   TransactionAmountValue `json:"amount"`
-	Currency string                 `json:"currency"`
 }
 
 // IBANAccount represents an IBAN account.
@@ -55,22 +48,6 @@ type CurrencyExchange struct {
 	UnitCurrency   string `json:"unitCurrency"`
 	TargetCurrency string `json:"targetCurrency"`
 	QuotationDate  string `json:"quotationDate"`
-}
-
-// TransactionDate is a date for a transaction.
-type TransactionDate time.Time
-
-// UnmarshalJSON provides custom unmarshalling for TransactionDate.
-// TODO: test this
-func (td *TransactionDate) UnmarshalJSON(b []byte) (err error) {
-	transactionDate, err := time.Parse("2006-01-02", strings.Trim(string(b), "\""))
-	if err != nil {
-		return errors.Wrap(err, "could not parse transaction date")
-	}
-
-	*td = TransactionDate(transactionDate)
-
-	return nil
 }
 
 // TransactionAmountValue is a value for a transaction amount.

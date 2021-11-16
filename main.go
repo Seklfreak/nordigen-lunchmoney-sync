@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -23,7 +24,8 @@ func main() {
 
 	// parse config
 	var config struct {
-		Nordigen *nordigen.Config `envconfig:"NORDIGEN" required:"true"`
+		Nordigen               *nordigen.Config `envconfig:"NORDIGEN" required:"true"`
+		NordigenRequisitionIDs []string         `envconfig:"NORDIGEN_REQUISITION_IDS"`
 
 		LunchmoneyAccessToken string `envconfig:"LUNCHMONEY_ACCESS_TOKEN" required:"true"`
 
@@ -58,6 +60,57 @@ func main() {
 	// print accounts if there is no mapping
 	if len(config.Mapping) == 0 {
 		log.Info("no mapping found, printing accounts")
+
+		for _, nordigenRequisitionID := range config.NordigenRequisitionIDs {
+			nordigenAccountList, err := nordigenClient.ListAccounts(ctx, nordigenRequisitionID)
+			if err != nil {
+				log.Fatal("failed to fetch account list for requisition ID",
+					zap.Error(err),
+					zap.String("requisition_id", nordigenRequisitionID),
+				)
+			}
+
+			for _, nordigenAccountID := range nordigenAccountList.Accounts {
+				nordigenAccountDetails, err := nordigenClient.GetAccountDetails(ctx, nordigenAccountID)
+				if err != nil {
+					log.Error("failed to fetch account details for account ID",
+						zap.Error(err),
+						zap.String("account_id", nordigenAccountID),
+					)
+
+					continue
+				}
+
+				nordigenAccountBalances, err := nordigenClient.GetAccountBalances(ctx, nordigenAccountID)
+				if err != nil {
+					log.Error("failed to fetch account balances for account ID",
+						zap.Error(err),
+						zap.String("account_id", nordigenAccountID),
+					)
+
+					continue
+				}
+
+				balances := make(map[string]string)
+
+				for _, balance := range nordigenAccountBalances {
+					balances[balance.BalanceType] = fmt.Sprintf(
+						"%.2f %s",
+						balance.BalanceAmount.Amount,
+						balance.BalanceAmount.Currency,
+					)
+				}
+
+				log.Info("nordigen account",
+					zap.String("id", nordigenAccountID),
+					zap.String("name", nordigenAccountDetails.Name),
+					zap.String("product", nordigenAccountDetails.Product),
+					zap.String("status", nordigenAccountDetails.Status),
+					zap.Any("balances", balances),
+				)
+			}
+
+		}
 
 		accounts, err := lunchmoneyClient.GetAssets(ctx)
 		if err != nil {
