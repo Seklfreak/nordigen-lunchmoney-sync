@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -38,8 +39,8 @@ type Transaction struct {
 
 // TransactionAmount represents the amount of a transaction.
 type TransactionAmount struct {
-	Amount   string `json:"amount"`
-	Currency string `json:"currency"`
+	Amount   TransactionAmountValue `json:"amount"`
+	Currency string                 `json:"currency"`
 }
 
 // IBANAccount represents an IBAN account.
@@ -60,6 +61,7 @@ type CurrencyExchange struct {
 type TransactionDate time.Time
 
 // UnmarshalJSON provides custom unmarshalling for TransactionDate.
+// TODO: test this
 func (td *TransactionDate) UnmarshalJSON(b []byte) (err error) {
 	transactionDate, err := time.Parse("2006-01-02", strings.Trim(string(b), "\""))
 	if err != nil {
@@ -67,6 +69,21 @@ func (td *TransactionDate) UnmarshalJSON(b []byte) (err error) {
 	}
 
 	*td = TransactionDate(transactionDate)
+
+	return nil
+}
+
+// TransactionAmountValue is a value for a transaction amount.
+type TransactionAmountValue float64
+
+// UnmarshalJSON provides custom unmarshalling for TransactionAmountValue.
+func (tav *TransactionAmountValue) UnmarshalJSON(b []byte) (err error) {
+	amount, err := strconv.ParseFloat(strings.Trim(string(b), "\""), 64)
+	if err != nil {
+		return errors.Wrapf(err, "could not parse transaction amount value %q", strings.Trim(string(b), "\""))
+	}
+
+	*tav = TransactionAmountValue(amount)
 
 	return nil
 }

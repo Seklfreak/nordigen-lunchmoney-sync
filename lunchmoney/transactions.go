@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -13,20 +14,39 @@ import (
 // Transaction represents a transaction.
 type Transaction struct {
 	// required parameters
-	Date   string  `json:"date"` // TODO: make this a time.Time
-	Amount float64 `json:"amount"`
+	Date   TransactionDate `json:"date"`
+	Amount float64         `json:"amount"`
 
 	// optional parameters
-	CategoryID  int      `json:"category_id,omitempty"`
-	Payee       string   `json:"payee,omitempty"`
-	Currency    string   `json:"currency,omitempty"`
-	AssetID     int      `json:"asset_id,omitempty"`
-	RecurringID int      `json:"recurring_id,omitempty"`
-	Notes       string   `json:"notes,omitempty"`
-	Status      string   `json:"status,omitempty"`
-	ExternalID  string   `json:"external_id,omitempty"`
-	Tags        []string `json:"tags,omitempty"`
+	CategoryID  int               `json:"category_id,omitempty"`
+	Payee       string            `json:"payee,omitempty"`
+	Currency    string            `json:"currency,omitempty"`
+	AssetID     int               `json:"asset_id,omitempty"`
+	RecurringID int               `json:"recurring_id,omitempty"`
+	Notes       string            `json:"notes,omitempty"`
+	Status      TransactionStatus `json:"status,omitempty"`
+	ExternalID  string            `json:"external_id,omitempty"`
+	Tags        []string          `json:"tags,omitempty"`
 }
+
+// TransactionDate represents a transaction date.
+type TransactionDate time.Time
+
+// MarshalJSON provides custom marshalling for TransactionDate.
+func (td *TransactionDate) MarshalJSON() ([]byte, error) {
+	res, err := json.Marshal(time.Time(*td).Format("2006-01-02"))
+	return res, errors.Wrap(err, "could not marshal transaction date")
+}
+
+// TransactionStatus represents a transaction status.
+type TransactionStatus string
+
+const (
+	// TransactionStatusCleared represents a cleared transaction status.
+	TransactionStatusCleared TransactionStatus = "cleared"
+	// TransactionStatusUncleared represents an uncleared transaction status.
+	TransactionStatusUncleared TransactionStatus = "uncleared"
+)
 
 // InsertTransactions inserts transactions to the Lunchmoney API.
 func (c *Client) InsertTransactions(ctx context.Context, trx []*Transaction) (int, error) {
@@ -43,7 +63,7 @@ func (c *Client) InsertTransactions(ctx context.Context, trx []*Transaction) (in
 		SkipDuplicates:    true,
 		CheckForRecurring: true,
 		DebitAsNegative:   true,
-		SkipBalanceUpdate: true,
+		SkipBalanceUpdate: false,
 	}
 
 	reqData, err := json.Marshal(request)

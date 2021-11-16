@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Seklfreak/nordigen-lunchmoney-sync/lunchmoney"
@@ -26,7 +27,8 @@ func main() {
 		Nordigen          *nordigen.Config `envconfig:"NORDIGEN" required:"true"`
 		NordigenAccountID string           `envconfig:"NORDIGEN_ACCOUNT_ID" required:"true"`
 
-		LunchmoneyAccessToken string `envconfig:"LUNCHMONEY_ACCESS_TOKEN"`
+		LunchmoneyAccessToken string `envconfig:"LUNCHMONEY_ACCESS_TOKEN" required:"true"`
+		LunchmoneyAssetID     int    `envconfig:"LUNCHMONEY_ASSET_ID" required:"true"`
 	}
 	err = envconfig.Process("", &config)
 	if err != nil {
@@ -60,22 +62,70 @@ func main() {
 		log.Fatal("failed to fetch transactions from nordigen", zap.Error(err))
 	}
 
-	// print transactions
-	for _, trx := range transactions.Booked {
-		log.Info("booked transaction", zap.Any("transaction", trx), zap.Time("value_date", time.Time(trx.ValueDate)))
+	allTransactions := append(transactions.Booked, transactions.Pending...)
+	log.Info("fetched transactions from Nordigen", zap.Int("total", len(allTransactions)))
+
+	// prepare transactions to insert
+	lunchmoneyTransactions := make([]*lunchmoney.Transaction, 0, len(allTransactions))
+
+	for _, trx := range allTransactions {
+		payee := trx.CreditorName
+		if payee == "" {
+			payee = trx.DebtorName
+		}
+
+		lmTrx := &lunchmoney.Transaction{
+			AssetID: config.LunchmoneyAssetID,
+
+			Amount:     float64(trx.TransactionAmount.Amount),
+			Currency:   strings.ToLower(trx.TransactionAmount.Currency),
+			Date:       lunchmoney.TransactionDate(trx.ValueDate),
+			Payee:      payee,
+			Notes:      strings.Join(trx.RemittanceInformationUnstructuredArray, "; "),
+			Status:     lunchmoney.TransactionStatusCleared, // TODO: set uncleared for pending transactions
+			ExternalID: trx.TransactionID,
+		}
+
+		if lmTrx.AssetID <= 0 ||
+			lmTrx.Amount == 0 ||
+			lmTrx.Currency == "" ||
+			time.Time(lmTrx.Date).IsZero() ||
+			lmTrx.Payee == "" ||
+			lmTrx.ExternalID == "" {
+			log.Fatal("unable to create proper lunchmoney transaction",
+				zap.Any("lunchmoney_trx", lmTrx),
+				zap.Any("source_transaction", trx),
+			)
+		}
+
+		lunchmoneyTransactions = append(lunchmoneyTransactions, lmTrx)
 	}
 
-	for _, trx := range transactions.Pending {
-		log.Info("pending transaction", zap.Any("transaction", trx), zap.Time("value_date", time.Time(trx.ValueDate)))
+	for _, trx := range lunchmoneyTransactions {
+		log.Info("prepared transaction", zap.Any("transaction", trx))
 	}
 
-	// fetch assets from Lunchmoney
-	assets, err := lunchmoneyClient.GetAssets(ctx)
-	if err != nil {
-		log.Fatal("failed to fetch assets from lunchmoney", zap.Error(err))
+	// split all into chunks
+	chunkSize := 50
+	chunks := make([][]*lunchmoney.Transaction, 0, chunkSize)
+
+	for i := 0; i < len(lunchmoneyTransactions); i += chunkSize {
+		end := i + chunkSize
+
+		if end > len(lunchmoneyTransactions) {
+			end = len(lunchmoneyTransactions)
+		}
+
+		chunks = append(chunks, lunchmoneyTransactions[i:end])
 	}
 
-	for _, asset := range assets {
-		log.Info("asset", zap.Any("asset", asset))
+	// insert transactions
+	for _, chunk := range chunks {
+		inserted, err := lunchmoneyClient.InsertTransactions(ctx, chunk)
+		if err != nil {
+			log.Fatal("failed to insert transactions", zap.Error(err), zap.Int("inserted_count", inserted), zap.Int("chunk_size", len(chunk)))
+		}
+
+		log.Info("inserted transactions", zap.Int("inserted_count", inserted), zap.Int("chunk_size", len(chunk)))
 	}
 }
