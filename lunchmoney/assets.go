@@ -20,7 +20,7 @@ type Asset struct {
 	TypeName        string     `json:"type_name,omitempty"`
 	SubtypeName     string     `json:"subtype_name,omitempty"`
 	Name            string     `json:"name,omitempty"`
-	Balance         string     `json:"balance,omitempty"`
+	Balance         string     `json:"balance,omitempty"` // TODO: Parse balance
 	BalanceAsOf     *time.Time `json:"balance_as_of,omitempty"`
 	Currency        string     `json:"currency,omitempty"`
 	InstitutionName string     `json:"institution_name,omitempty"`
