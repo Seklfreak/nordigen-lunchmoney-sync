@@ -82,3 +82,41 @@ Normally we would expect that all balances will automatically be updated with ea
 BALANCES_MAP="[Nordigen Account ID]:[Lunchmoney Asset ID],[Nordigen Account ID]:[Lunchmoney Asset ID][,…]"
 ```
 This can be specified additionally to the `TRANSACTIONS_MAP` parameter. The script will then first sync transactions and afterwards sync balances.
+
+## Automation via GitHub Actions
+
+We can run the script automatically as a cronjob via GitHub Actions. For this create a private GitHub repository with the following action.
+```yaml
+name: Sync to Lunchmoney
+
+on:
+  schedule:
+    - cron: "15 */4 * * *"
+  workflow_dispatch:
+
+jobs:
+  sync:
+    name: Sync to Lunchmoney
+    runs-on: ubuntu-latest
+    steps:
+    - name: Clone "Seklfreak/nordigen-lunchmoney-sync"
+      uses: actions/checkout@v2
+      with:
+        repository: Seklfreak/nordigen-lunchmoney-sync
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17
+
+    - name: Build and Run
+      run: go run .
+      env:
+        NORDIGEN_SECRET_ID: ${{ secrets.NORDIGEN_SECRET_ID }}
+        NORDIGEN_SECRET_KEY: ${{ secrets.NORDIGEN_SECRET_KEY }}
+        LUNCHMONEY_ACCESS_TOKEN: ${{ secrets.LUNCHMONEY_ACCESS_TOKEN }}
+        TRANSACTIONS_MAP: ${{ secrets.TRANSACTIONS_MAP }}
+        BALANCES_MAP: ${{ secrets.BALANCES_MAP }}
+```
+
+After [configuring the secrets for the private repository](https://docs.github.com/en/actions/security-guides/encrypted-secrets) the script will be executed every four hours. You could also choose to have the GitHub Action clone a fork (on your personal GitHub Account) of the repository for improved security.
