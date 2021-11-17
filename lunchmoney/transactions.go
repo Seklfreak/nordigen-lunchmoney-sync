@@ -60,7 +60,7 @@ func (c *Client) InsertTransactions(ctx context.Context, trx []*Transaction) (in
 	}{
 		Transactions:      trx,
 		ApplyRules:        true,
-		SkipDuplicates:    true,
+		SkipDuplicates:    false, // deduplication is done via `external_id`
 		CheckForRecurring: true,
 		DebitAsNegative:   true,
 		SkipBalanceUpdate: false,
