@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"strings"
 
 	"github.com/Seklfreak/nordigen-lunchmoney-sync/lunchmoney"
 	"github.com/Seklfreak/nordigen-lunchmoney-sync/nordigen"
@@ -17,7 +18,21 @@ func syncBalance(
 	lunchmoneyClient *lunchmoney.Client,
 	log *zap.Logger,
 ) error {
-	// TODO: compare currencies to avoid syncing mismatching currencies
+	assets, err := lunchmoneyClient.GetAssets(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to fetch asses from Lunchmoney")
+	}
+
+	var asset *lunchmoney.Asset
+	for _, a := range assets {
+		if a.ID == lunchmoneyAssetID {
+			asset = a
+		}
+	}
+
+	if asset == nil {
+		return errors.New("unable to find Lunchmoney asset to sync")
+	}
 
 	balances, err := nordigenClient.GetAccountBalances(ctx, nordigenAccountID)
 	if err != nil {
@@ -26,14 +41,14 @@ func syncBalance(
 
 	var balance *nordigen.Balance
 	for _, bl := range balances {
-		if bl.BalanceType == "expected" {
+		if bl.BalanceType == "expected" && strings.EqualFold(bl.BalanceAmount.Currency, asset.Currency) {
 			balance = bl
 			break
 		}
 	}
 
 	if balance == nil {
-		return errors.New("unable to find a balance to sync")
+		return errors.New("unable to find a balance to sync on Nordigen")
 	}
 
 	err = lunchmoneyClient.UpdateAsset(ctx, lunchmoneyAssetID, &lunchmoney.Asset{
