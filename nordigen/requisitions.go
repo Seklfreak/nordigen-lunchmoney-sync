@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// AccountList represents a list of accounts.
 type AccountList struct {
 	ID               string    `json:"id"`
 	Created          time.Time `json:"created"`
@@ -24,6 +25,7 @@ type AccountList struct {
 	AccountSelection bool      `json:"account_selection"`
 }
 
+// ListAccounts fetches Nordigen accounts.
 func (c *Client) ListAccounts(ctx context.Context, requisitionID string) (*AccountList, error) {
 	req, err := http.NewRequestWithContext(
 		ctx,

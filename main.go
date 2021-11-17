@@ -109,7 +109,6 @@ func main() {
 					zap.Any("balances", balances),
 				)
 			}
-
 		}
 
 		accounts, err := lunchmoneyClient.GetAssets(ctx)

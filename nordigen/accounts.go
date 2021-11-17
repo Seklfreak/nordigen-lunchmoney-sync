@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Account represents an account.
 type Account struct {
 	ResourceID      string `json:"resourceId"`
 	Currency        string `json:"currency"`
@@ -22,6 +23,7 @@ type Account struct {
 	Usage           string `json:"usage"`
 }
 
+// GetAccountDetails fetches details for an account.
 func (c *Client) GetAccountDetails(ctx context.Context, accountID string) (*Account, error) {
 	req, err := http.NewRequestWithContext(
 		ctx,
@@ -58,6 +60,7 @@ func (c *Client) GetAccountDetails(ctx context.Context, accountID string) (*Acco
 	return account.Account, nil
 }
 
+// Balance represents an account balance.
 type Balance struct {
 	BalanceAmount      Amount    `json:"balanceAmount"`
 	BalanceType        string    `json:"balanceType"`
@@ -65,6 +68,7 @@ type Balance struct {
 	ReferenceDate      Date      `json:"referenceDate"`
 }
 
+// GetAccountBalances fetches the balances for an account.
 func (c *Client) GetAccountBalances(ctx context.Context, accountID string) ([]*Balance, error) {
 	req, err := http.NewRequestWithContext(
 		ctx,
