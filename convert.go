@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"strings"
 	"time"
@@ -32,6 +34,29 @@ func createLunchmoneyTrx(
 		payee = account.OwnerName
 	}
 
+	note := trx.RemittanceInformationUnstructured
+	if note == "" {
+		strings.Join(trx.RemittanceInformationUnstructuredArray, "; ")
+	}
+
+	transactionID := trx.TransactionID
+	if transactionID == "" {
+		// if API returns no external Transaction ID build new one out of hash of all information
+		transactionID = fmt.Sprintf(
+			"%s|%.2f%s|%s|%s|%s",
+			time.Time(trx.ValueDate),
+			trx.TransactionAmount.Amount,
+			trx.TransactionAmount.Currency,
+			trx.CreditorName,
+			trx.DebtorName,
+			note,
+		)
+
+		hasher := sha256.New()
+		hasher.Write([]byte(transactionID))
+		transactionID = base64.URLEncoding.EncodeToString(hasher.Sum(nil))
+	}
+
 	lmTrx := &lunchmoney.Transaction{
 		AssetID: lunchmoneyAssetID,
 
@@ -39,9 +64,9 @@ func createLunchmoneyTrx(
 		Currency:   strings.ToLower(trx.TransactionAmount.Currency),
 		Date:       lunchmoney.TransactionDate(date),
 		Payee:      payee,
-		Notes:      strings.Join(trx.RemittanceInformationUnstructuredArray, "; "),
+		Notes:      note,
 		Status:     trxStatus,
-		ExternalID: trx.TransactionID,
+		ExternalID: transactionID,
 	}
 
 	if lmTrx.AssetID <= 0 {

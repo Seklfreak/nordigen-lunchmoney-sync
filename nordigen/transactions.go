@@ -26,10 +26,14 @@ type Transaction struct {
 
 	BankTransactionCode                    string   `json:"bankTransactionCode"`
 	AdditionalInformation                  string   `json:"additionalInformation"`
+	RemittanceInformationUnstructured      string   `json:"remittanceInformationUnstructured"`
 	RemittanceInformationUnstructuredArray []string `json:"remittanceInformationUnstructuredArray"`
 	ProprietaryBankTransactionCode         string   `json:"proprietaryBankTransactionCode"`
 	BookingDate                            Date     `json:"bookingDate"`
 	ValueDate                              Date     `json:"valueDate"`
+	UltimateCreditor                       string   `json:"ultimateCreditor"`
+	MandateID                              string   `json:"mandateId"`
+	EndToEndID                             string   `json:"endToEndId"`
 
 	DebtorName    string       `json:"debtorName"`
 	DebtorAccount *IBANAccount `json:"debtorAccount"`
