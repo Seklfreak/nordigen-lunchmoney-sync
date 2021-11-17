@@ -65,6 +65,7 @@ func main() {
 		if err != nil {
 			log.Fatal("failed to print accounts", zap.Error(err))
 		}
+
 		return
 	}
 

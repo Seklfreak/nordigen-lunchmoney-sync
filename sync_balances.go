@@ -24,6 +24,7 @@ func syncBalance(
 	}
 
 	var asset *lunchmoney.Asset
+
 	for _, a := range assets {
 		if a.ID == lunchmoneyAssetID {
 			asset = a
@@ -40,9 +41,11 @@ func syncBalance(
 	}
 
 	var balance *nordigen.Balance
+
 	for _, bl := range balances {
 		if bl.BalanceType == "expected" && strings.EqualFold(bl.BalanceAmount.Currency, asset.Currency) {
 			balance = bl
+
 			break
 		}
 	}
