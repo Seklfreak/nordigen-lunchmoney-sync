@@ -54,8 +54,10 @@ func syncBalance(
 		return errors.New("unable to find a balance to sync on Nordigen")
 	}
 
+	lmBalance := lunchmoney.AssetBalance(balance.BalanceAmount.Amount)
+
 	err = lunchmoneyClient.UpdateAsset(ctx, lunchmoneyAssetID, &lunchmoney.Asset{
-		Balance: lunchmoney.AssetBalance(balance.BalanceAmount.Amount),
+		Balance: &lmBalance,
 	})
 	if err != nil {
 		return errors.Wrap(err, "failed to update Lunchmoney asset")

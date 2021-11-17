@@ -76,7 +76,7 @@ func printAccounts(
 			zap.String("institution_name", account.InstitutionName),
 			zap.String("type", account.TypeName),
 			zap.String("subtype", account.SubtypeName),
-			zap.Float64("balance", float64(account.Balance)),
+			zap.Float64("balance", float64(*account.Balance)),
 			zap.String("currency", account.Currency),
 		)
 	}

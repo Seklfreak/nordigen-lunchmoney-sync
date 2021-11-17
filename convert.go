@@ -15,7 +15,6 @@ func createLunchmoneyTrx(
 	trx nordigen.Transaction,
 	account *nordigen.Account,
 	lunchmoneyAssetID int,
-	trxStatus lunchmoney.TransactionStatus,
 ) (*lunchmoney.Transaction, error) {
 	payee := trx.CreditorName
 	if payee == "" {
@@ -65,7 +64,7 @@ func createLunchmoneyTrx(
 		Date:       lunchmoney.TransactionDate(date),
 		Payee:      payee,
 		Notes:      note,
-		Status:     trxStatus,
+		Status:     lunchmoney.TransactionStatusUncleared,
 		ExternalID: transactionID,
 
 		Tags: []string{"nordigen-lunchmoney-sync"},

@@ -42,9 +42,9 @@ func (td *TransactionDate) MarshalJSON() ([]byte, error) {
 type TransactionStatus string
 
 const (
-	// TransactionStatusCleared represents a cleared transaction status.
+	// TransactionStatusCleared represents a reviewed transaction.
 	TransactionStatusCleared TransactionStatus = "cleared"
-	// TransactionStatusUncleared represents an uncleared transaction status.
+	// TransactionStatusUncleared represents an unreviewed transaction.
 	TransactionStatusUncleared TransactionStatus = "uncleared"
 )
 

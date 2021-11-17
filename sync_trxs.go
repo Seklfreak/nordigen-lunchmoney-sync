@@ -34,17 +34,8 @@ func syncAccount(
 	// prepare transactions to insert
 	lunchmoneyTransactions := make([]*lunchmoney.Transaction, 0, len(transactions.Booked)+len(transactions.Pending))
 
-	for _, trx := range transactions.Booked {
-		lmTrx, err := createLunchmoneyTrx(trx, account, lunchmoneyAssetID, lunchmoney.TransactionStatusCleared)
-		if err != nil {
-			return errors.Wrapf(err, "failed to create Lunchmoney transaction for Nordigen transaction %s", trx.TransactionID)
-		}
-
-		lunchmoneyTransactions = append(lunchmoneyTransactions, lmTrx)
-	}
-
-	for _, trx := range transactions.Pending {
-		lmTrx, err := createLunchmoneyTrx(trx, account, lunchmoneyAssetID, lunchmoney.TransactionStatusUncleared)
+	for _, trx := range append(transactions.Booked, transactions.Pending...) {
+		lmTrx, err := createLunchmoneyTrx(trx, account, lunchmoneyAssetID)
 		if err != nil {
 			return errors.Wrapf(err, "failed to create Lunchmoney transaction for Nordigen transaction %s", trx.TransactionID)
 		}
