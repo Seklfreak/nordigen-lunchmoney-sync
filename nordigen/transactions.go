@@ -27,6 +27,7 @@ type Transaction struct {
 	BankTransactionCode                    string   `json:"bankTransactionCode"`
 	AdditionalInformation                  string   `json:"additionalInformation"`
 	RemittanceInformationUnstructuredArray []string `json:"remittanceInformationUnstructuredArray"`
+	ProprietaryBankTransactionCode         string   `json:"proprietaryBankTransactionCode"`
 	BookingDate                            Date     `json:"bookingDate"`
 	ValueDate                              Date     `json:"valueDate"`
 

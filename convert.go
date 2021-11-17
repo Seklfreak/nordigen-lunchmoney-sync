@@ -1,7 +1,7 @@
 package main
 
 import (
-	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -25,8 +25,10 @@ func createLunchmoneyTrx(
 		date = trx.BookingDate
 	}
 
-	// for transfers from wallets to personal bank account use OwnerName as payee (e.g. PayPal)
-	if trx.AdditionalInformation == "MONEY_TRANSFER" && payee == "" && account.OwnerName != "" {
+	// for transfers from/to wallets using the personal account use OwnerName as payee (e.g. PayPal)
+	if (trx.AdditionalInformation == "MONEY_TRANSFER" ||
+		trx.ProprietaryBankTransactionCode == "TOPUP") &&
+		payee == "" && account.OwnerName != "" {
 		payee = account.OwnerName
 	}
 
@@ -43,27 +45,27 @@ func createLunchmoneyTrx(
 	}
 
 	if lmTrx.AssetID <= 0 {
-		return nil, errors.New("lunchmoney transaction asset id cannot be empty")
+		return nil, fmt.Errorf("converting trx %s: lunchmoney transaction asset id cannot be empty", trx.TransactionID)
 	}
 
 	if lmTrx.Amount == 0 {
-		return nil, errors.New("lunchmoney transaction amount cannot be 0")
+		return nil, fmt.Errorf("converting trx %s: lunchmoney transaction amount cannot be 0", trx.TransactionID)
 	}
 
 	if lmTrx.Currency == "" {
-		return nil, errors.New("lunchmoney transaction currency cannot be empty")
+		return nil, fmt.Errorf("converting trx %s: lunchmoney transaction currency cannot be empty", trx.TransactionID)
 	}
 
 	if time.Time(lmTrx.Date).IsZero() {
-		return nil, errors.New("lunchmoney transaction date cannot be empty")
+		return nil, fmt.Errorf("converting trx %s: lunchmoney transaction date cannot be empty", trx.TransactionID)
 	}
 
 	if lmTrx.Payee == "" {
-		return nil, errors.New("lunchmoney transaction payee cannot be empty")
+		return nil, fmt.Errorf("converting trx %s: lunchmoney transaction payee cannot be empty", trx.TransactionID)
 	}
 
 	if lmTrx.ExternalID == "" {
-		return nil, errors.New("lunchmoney transaction external ID cannot be empty")
+		return nil, fmt.Errorf("converting trx %s: lunchmoney transaction external ID cannot be empty", trx.TransactionID)
 	}
 
 	return lmTrx, nil
