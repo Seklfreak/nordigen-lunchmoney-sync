@@ -25,6 +25,7 @@ type Transaction struct {
 	CurrencyExchange  []*CurrencyExchange `json:"currencyExchange"`
 
 	BankTransactionCode                    string   `json:"bankTransactionCode"`
+	AdditionalInformation                  string   `json:"additionalInformation"`
 	RemittanceInformationUnstructuredArray []string `json:"remittanceInformationUnstructuredArray"`
 	BookingDate                            Date     `json:"bookingDate"`
 	ValueDate                              Date     `json:"valueDate"`

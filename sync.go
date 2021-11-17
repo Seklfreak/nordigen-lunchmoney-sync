@@ -17,6 +17,12 @@ func syncAccount(
 	lunchmoneyClient *lunchmoney.Client,
 	log *zap.Logger,
 ) error {
+	// fetch account details from Nordigen
+	account, err := nordigenClient.GetAccountDetails(ctx, nordigenAccountID)
+	if err != nil {
+		return errors.Wrap(err, "failed to fetch account details from Nordigen")
+	}
+
 	// fetch transactions from Nordigen
 	transactions, err := nordigenClient.Transactions(ctx, nordigenAccountID)
 	if err != nil {
@@ -29,7 +35,7 @@ func syncAccount(
 	lunchmoneyTransactions := make([]*lunchmoney.Transaction, 0, len(transactions.Booked)+len(transactions.Pending))
 
 	for _, trx := range transactions.Booked {
-		lmTrx, err := createLunchmoneyTrx(trx, lunchmoneyAssetID, lunchmoney.TransactionStatusCleared)
+		lmTrx, err := createLunchmoneyTrx(trx, account, lunchmoneyAssetID, lunchmoney.TransactionStatusCleared)
 		if err != nil {
 			return errors.Wrapf(err, "failed to create Lunchmoney transaction for Nordigen transaction %s", trx.TransactionID)
 		}
@@ -38,7 +44,7 @@ func syncAccount(
 	}
 
 	for _, trx := range transactions.Pending {
-		lmTrx, err := createLunchmoneyTrx(trx, lunchmoneyAssetID, lunchmoney.TransactionStatusUncleared)
+		lmTrx, err := createLunchmoneyTrx(trx, account, lunchmoneyAssetID, lunchmoney.TransactionStatusUncleared)
 		if err != nil {
 			return errors.Wrapf(err, "failed to create Lunchmoney transaction for Nordigen transaction %s", trx.TransactionID)
 		}

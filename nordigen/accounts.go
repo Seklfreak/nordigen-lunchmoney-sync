@@ -15,6 +15,7 @@ type Account struct {
 	ResourceID      string `json:"resourceId"`
 	Currency        string `json:"currency"`
 	Name            string `json:"name"`
+	OwnerName       string `json:"ownerName"`
 	Product         string `json:"product"`
 	CashAccountType string `json:"cashAccountType"`
 	Status          string `json:"status"`
