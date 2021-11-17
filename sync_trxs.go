@@ -77,7 +77,12 @@ func syncAccount(
 			return errors.Wrapf(err, "failed to insert transactions")
 		}
 
-		log.Info("inserted transactions", zap.Int("inserted_count", inserted), zap.Int("chunk_size", len(chunk)))
+		log.Info("inserted transactions",
+			zap.Int("inserted_count", inserted),
+			zap.Int("chunk_size", len(chunk)),
+			zap.String("nordigen_account_id", nordigenAccountID),
+			zap.Int("lunchmoney_asset_id", lunchmoneyAssetID),
+		)
 	}
 
 	return nil

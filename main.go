@@ -28,7 +28,8 @@ func main() {
 
 		LunchmoneyAccessToken string `envconfig:"LUNCHMONEY_ACCESS_TOKEN" required:"true"`
 
-		Mapping map[string]int `envconfig:"MAPPING"` // map[nordigenAccountID]lunchmoneyAssetID
+		TransactionsMap map[string]int `envconfig:"TRANSACTIONS_MAP"` // map[nordigenAccountID]lunchmoneyAssetID
+		BalancesMap     map[string]int `envconfig:"BALANCES_MAP"`     // map[nordigenAccountID]lunchmoneyAssetID
 	}
 	err = envconfig.Process("", &config)
 	if err != nil {
@@ -57,7 +58,7 @@ func main() {
 	ctx := context.Background()
 
 	// print accounts if there is no mapping
-	if len(config.Mapping) == 0 {
+	if len(config.TransactionsMap) == 0 && len(config.BalancesMap) == 0 {
 		log.Info("no mapping found, printing accounts")
 
 		err = printAccounts(ctx, config.NordigenRequisitionIDs, nordigenClient, lunchmoneyClient, log)
@@ -67,7 +68,7 @@ func main() {
 		return
 	}
 
-	for nordigenAccountID, lunchmoneyAssetID := range config.Mapping {
+	for nordigenAccountID, lunchmoneyAssetID := range config.TransactionsMap {
 		err = syncAccount(
 			ctx,
 			nordigenAccountID,
@@ -77,7 +78,25 @@ func main() {
 			log,
 		)
 		if err != nil {
-			log.Fatal("failure syncing account",
+			log.Fatal("failure syncing transactions",
+				zap.String("nordigen_account_id", nordigenAccountID),
+				zap.Int("lunchmoney_asset_id", lunchmoneyAssetID),
+				zap.Error(err),
+			)
+		}
+	}
+
+	for nordigenAccountID, lunchmoneyAssetID := range config.BalancesMap {
+		err = syncBalance(
+			ctx,
+			nordigenAccountID,
+			lunchmoneyAssetID,
+			nordigenClient,
+			lunchmoneyClient,
+			log,
+		)
+		if err != nil {
+			log.Fatal("failure syncing balance",
 				zap.String("nordigen_account_id", nordigenAccountID),
 				zap.Int("lunchmoney_asset_id", lunchmoneyAssetID),
 				zap.Error(err),

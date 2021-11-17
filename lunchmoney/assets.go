@@ -94,7 +94,7 @@ func (c *Client) UpdateAsset(ctx context.Context, assetID int, asset *Asset) err
 	}
 
 	var result struct {
-		Error []string `json:"error"`
+		Errors []string `json:"errors"`
 	}
 
 	err = json.NewDecoder(resp.Body).Decode(&result)
@@ -102,8 +102,8 @@ func (c *Client) UpdateAsset(ctx context.Context, assetID int, asset *Asset) err
 		return errors.Wrap(err, "failed to decode response body")
 	}
 
-	if len(result.Error) > 0 {
-		return fmt.Errorf("received %d errors: %q", len(result.Error), strings.Join(result.Error, "; "))
+	if len(result.Errors) > 0 {
+		return fmt.Errorf("received %d errors: %q", len(result.Errors), strings.Join(result.Errors, "; "))
 	}
 
 	return nil

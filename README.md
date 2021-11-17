@@ -12,7 +12,7 @@ NORDIGEN_SECRET_KEY=[Nordigen Secret Key from the Nordigen Control Panel]
 LUNCHMONEY_ACCESS_TOKEN=[Lunchmoney Access Token from the Lunchmoney App]
 
 # configure the mapping of Nordigen Accoutn IDs to Lunchmoney Asset IDs (Lunchmoney Accounts)
-MAPPING="[Nordigen Account ID]:[Lunchmoney Asset ID],[Nordigen Account ID]:[Lunchmoney Asset ID][,…]"
+TRANSACTIONS_MAP="[Nordigen Account ID]:[Lunchmoney Asset ID],[Nordigen Account ID]:[Lunchmoney Asset ID][,…]"
 ```
 
 If all parameters are specified the script will sync the transactions and then exit.
@@ -71,6 +71,6 @@ NORDIGEN_REQUISITION_IDS=[Nordigen Requisition ID]
 
 It will print all Nordigen Account IDs and Lunchmoney Asset IDs so you can create the right mapping. You will want to find the right "nordigen account" message and copy the ID from there. Next you find the right "lunchmoney account" message and copy its ID as well. You can create a mapping like this: 
 ```
-MAPPING="[Nordigen Account ID]:[Lunchmoney Asset/Acccount ID]"
+TRANSACTIONS_MAP="[Nordigen Account ID]:[Lunchmoney Asset/Acccount ID]"
 ```
-Multiple mappings can be seperated via commas. If you run the script with the `MAPPING` variable set it will sync the transactions and then exit.
+Multiple mappings can be seperated via commas. If you run the script with the `TRANSACTIONS_MAP` variable set it will sync the transactions and then exit.
