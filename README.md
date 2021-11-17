@@ -11,7 +11,7 @@ NORDIGEN_SECRET_KEY=[Nordigen Secret Key from the Nordigen Control Panel]
 
 LUNCHMONEY_ACCESS_TOKEN=[Lunchmoney Access Token from the Lunchmoney App]
 
-# configure the mapping of Nordigen Accoutn IDs to Lunchmoney Asset IDs (Lunchmoney Accounts)
+# configure the mapping of Nordigen Account IDs to Lunchmoney Asset IDs (Lunchmoney Accounts)
 TRANSACTIONS_MAP="[Nordigen Account ID]:[Lunchmoney Asset ID],[Nordigen Account ID]:[Lunchmoney Asset ID][,…]"
 ```
 
