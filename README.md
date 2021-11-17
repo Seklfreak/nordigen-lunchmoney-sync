@@ -107,7 +107,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.17
+        go-version: "^1"
 
     - name: Build and Run
       run: go run .
@@ -119,4 +119,4 @@ jobs:
         BALANCES_MAP: ${{ secrets.BALANCES_MAP }}
 ```
 
-After [configuring the secrets for the private repository](https://docs.github.com/en/actions/security-guides/encrypted-secrets) the script will be executed every four hours. You could also choose to have the GitHub Action clone a fork (on your personal GitHub Account) of the repository for improved security.
+After [configuring the secrets for the private repository](https://docs.github.com/en/actions/security-guides/encrypted-secrets) the script will be executed every four hours. In case of a failure you will receive an email. You could also choose to have the GitHub Action clone a fork (on your personal GitHub Account) of the repository for improved security.
