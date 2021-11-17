@@ -10,17 +10,10 @@ import (
 	"github.com/kelseyhightower/envconfig"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 func main() {
-	// init logger
-	log, err := zap.NewDevelopment()
-	if err != nil {
-		panic(errors.Wrap(err, "failed to create logger"))
-	}
-	defer log.Sync()
-	zap.ReplaceGlobals(log)
-
 	// parse config
 	var config struct {
 		Nordigen               *nordigen.Config `envconfig:"NORDIGEN" required:"true"`
@@ -30,11 +23,26 @@ func main() {
 
 		TransactionsMap map[string]int `envconfig:"TRANSACTIONS_MAP"` // map[nordigenAccountID]lunchmoneyAssetID
 		BalancesMap     map[string]int `envconfig:"BALANCES_MAP"`     // map[nordigenAccountID]lunchmoneyAssetID
+
+		Debug bool `envconfig:"DEBUG"`
 	}
-	err = envconfig.Process("", &config)
+	err := envconfig.Process("", &config)
 	if err != nil {
-		log.Fatal("failed to process config", zap.Error(err))
+		panic(errors.Wrap(err, "failed to process config"))
 	}
+
+	// init logger
+	logOpts := make([]zap.Option, 0)
+	if !config.Debug {
+		logOpts = append(logOpts, zap.IncreaseLevel(zapcore.InfoLevel))
+	}
+
+	log, err := zap.NewDevelopment(logOpts...)
+	if err != nil {
+		panic(errors.Wrap(err, "failed to create logger"))
+	}
+	defer log.Sync()
+	zap.ReplaceGlobals(log)
 
 	// create Nordigen client
 	nordigenClient, err := nordigen.NewClient(

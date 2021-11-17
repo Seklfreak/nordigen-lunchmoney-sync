@@ -53,7 +53,7 @@ func syncAccount(
 	}
 
 	for _, trx := range lunchmoneyTransactions {
-		log.Info("prepared transaction", zap.Any("transaction", trx))
+		log.Debug("prepared transaction", zap.Any("transaction", trx))
 	}
 
 	// split all into chunks
