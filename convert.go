@@ -67,6 +67,8 @@ func createLunchmoneyTrx(
 		Notes:      note,
 		Status:     trxStatus,
 		ExternalID: transactionID,
+
+		Tags: []string{"nordigen-lunchmoney-sync"},
 	}
 
 	if lmTrx.AssetID <= 0 {
