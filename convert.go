@@ -35,7 +35,7 @@ func createLunchmoneyTrx(
 
 	note := trx.RemittanceInformationUnstructured
 	if note == "" {
-		strings.Join(trx.RemittanceInformationUnstructuredArray, "; ")
+		note = strings.Join(trx.RemittanceInformationUnstructuredArray, "; ")
 	}
 
 	transactionID := trx.TransactionID
