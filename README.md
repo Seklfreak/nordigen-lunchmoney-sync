@@ -74,3 +74,11 @@ It will print all Nordigen Account IDs and Lunchmoney Asset IDs so you can creat
 TRANSACTIONS_MAP="[Nordigen Account ID]:[Lunchmoney Asset/Acccount ID]"
 ```
 Multiple mappings can be seperated via commas. If you run the script with the `TRANSACTIONS_MAP` variable set it will sync the transactions and then exit.
+
+## Syncing balances
+
+Normally we would expect that all balances will automatically be updated with each inserted transactions (after a manual correct following the first sync as there is a time limit on the age of transactions we can fetch). However for some accounts this may not work accurately. For example with PayPal we do not receive transactions which settle the balance after making purchases via PayPal. This is where the feature to sync balances comes it handy. Similar to the mapping for transactions a mapping for syncing balances can be provided. The script will then fetch the current balance from the bank and update the balance for the Lunchmoney account. The configuration is as follows:
+```
+BALANCES_MAP="[Nordigen Account ID]:[Lunchmoney Asset ID],[Nordigen Account ID]:[Lunchmoney Asset ID][,…]"
+```
+This can be specified additionally to the `TRANSACTIONS_MAP` parameter. The script will then first sync transactions and afterwards sync balances.
