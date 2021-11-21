@@ -29,12 +29,12 @@ func syncAccount(
 		return errors.Wrap(err, "failed to fetch transactions from Nordigen")
 	}
 
-	log.Info("fetched transactions from Nordigen", zap.Int("total", len(transactions.Booked)+len(transactions.Pending)))
+	log.Info("fetched transactions from Nordigen", zap.Int("total", len(transactions.Booked)))
 
 	// prepare transactions to insert
-	lunchmoneyTransactions := make([]*lunchmoney.Transaction, 0, len(transactions.Booked)+len(transactions.Pending))
+	lunchmoneyTransactions := make([]*lunchmoney.Transaction, 0, len(transactions.Booked))
 
-	for _, trx := range append(transactions.Booked, transactions.Pending...) {
+	for _, trx := range transactions.Booked {
 		lmTrx, err := createLunchmoneyTrx(trx, account, lunchmoneyAssetID)
 		if err != nil {
 			return errors.Wrapf(err, "failed to create Lunchmoney transaction for Nordigen transaction %s", trx.TransactionID)
