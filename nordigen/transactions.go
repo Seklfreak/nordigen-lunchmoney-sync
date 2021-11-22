@@ -21,8 +21,8 @@ type Transactions struct {
 type Transaction struct {
 	TransactionID string `json:"transactionId"`
 
-	TransactionAmount Amount              `json:"transactionAmount"`
-	CurrencyExchange  []*CurrencyExchange `json:"currencyExchange"`
+	TransactionAmount Amount            `json:"transactionAmount"`
+	CurrencyExchange  CurrencyExchanges `json:"currencyExchange"`
 
 	BankTransactionCode                    string   `json:"bankTransactionCode"`
 	AdditionalInformation                  string   `json:"additionalInformation"`
@@ -47,20 +47,43 @@ type IBANAccount struct {
 	IBAN string `json:"iban"`
 }
 
+// CurrencyExchanges represents a collection of CurrencyExchange items.
+type CurrencyExchanges []*CurrencyExchange
+
+// UnmarshalJSON provides custom JSON unmarshalling for CurrencyExchanges.
+func (ce *CurrencyExchanges) UnmarshalJSON(b []byte) error {
+	var r []*CurrencyExchange
+	err := json.Unmarshal(b, &r)
+	if err != nil {
+
+		var ceItem *CurrencyExchange
+		err = json.Unmarshal(b, &ceItem)
+		if err != nil {
+			return errors.Wrap(err, "failed to unmarshal CurrencyExchanges")
+		}
+		r = []*CurrencyExchange{ceItem}
+	}
+
+	*ce = r
+
+	return nil
+}
+
 // CurrencyExchange represents a currency exchange value.
 type CurrencyExchange struct {
-	SourceCurrency string `json:"sourceCurrency"`
-	ExchangeRate   string `json:"exchangeRate"`
-	UnitCurrency   string `json:"unitCurrency"`
-	TargetCurrency string `json:"targetCurrency"`
-	QuotationDate  string `json:"quotationDate"`
+	SourceCurrency   string `json:"sourceCurrency"`
+	ExchangeRate     string `json:"exchangeRate"`
+	UnitCurrency     string `json:"unitCurrency"`
+	TargetCurrency   string `json:"targetCurrency"`
+	QuotationDate    string `json:"quotationDate"`
+	InstructedAmount Amount `json:"instructedAmount"`
 }
 
 // TransactionAmountValue is a value for a transaction amount.
 type TransactionAmountValue float64
 
-// UnmarshalJSON provides custom unmarshalling for TransactionAmountValue.
-func (tav *TransactionAmountValue) UnmarshalJSON(b []byte) (err error) {
+// UnmarshalJSON provides custom JSON unmarshalling for TransactionAmountValue.
+func (tav *TransactionAmountValue) UnmarshalJSON(b []byte) error {
 	amount, err := strconv.ParseFloat(strings.Trim(string(b), "\""), 64)
 	if err != nil {
 		return errors.Wrapf(err, "could not parse transaction amount value %q", strings.Trim(string(b), "\""))
