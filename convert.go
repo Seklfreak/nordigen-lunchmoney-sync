@@ -33,6 +33,12 @@ func createLunchmoneyTrx(
 		payee = account.OwnerName
 	}
 
+	// for exchanges use the transaction code as payee
+	if (trx.ProprietaryBankTransactionCode == "EXCHANGE") &&
+		payee == "" {
+		payee = strings.Title(strings.ToLower(trx.ProprietaryBankTransactionCode))
+	}
+
 	note := trx.RemittanceInformationUnstructured
 	if note == "" {
 		note = strings.Join(trx.RemittanceInformationUnstructuredArray, "; ")

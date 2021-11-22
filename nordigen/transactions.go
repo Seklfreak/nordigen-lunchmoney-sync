@@ -52,15 +52,20 @@ type CurrencyExchanges []*CurrencyExchange
 
 // UnmarshalJSON provides custom JSON unmarshalling for CurrencyExchanges.
 func (ce *CurrencyExchanges) UnmarshalJSON(b []byte) error {
+	// Nordigen returns this sometimes as an array of objects, sometimes as an object.
+	// this logic is to handle both cases.
+
+	// try array
 	var r []*CurrencyExchange
 	err := json.Unmarshal(b, &r)
 	if err != nil {
-
+		// try object
 		var ceItem *CurrencyExchange
 		err = json.Unmarshal(b, &ceItem)
 		if err != nil {
 			return errors.Wrap(err, "failed to unmarshal CurrencyExchanges")
 		}
+
 		r = []*CurrencyExchange{ceItem}
 	}
 
