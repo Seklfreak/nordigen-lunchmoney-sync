@@ -33,8 +33,9 @@ func createLunchmoneyTrx(
 		payee = account.OwnerName
 	}
 
-	// for exchanges use the transaction code as payee
-	if (trx.ProprietaryBankTransactionCode == "EXCHANGE") &&
+	// for exchange or transfer use the transaction code as payee
+	if (trx.ProprietaryBankTransactionCode == "EXCHANGE" ||
+		trx.ProprietaryBankTransactionCode == "TRANSFER") &&
 		payee == "" {
 		payee = strings.Title(strings.ToLower(trx.ProprietaryBankTransactionCode))
 	}
