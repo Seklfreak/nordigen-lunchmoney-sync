@@ -82,7 +82,8 @@ func createLunchmoneyTrx(
 	}
 
 	if lmTrx.Amount == 0 {
-		return nil, fmt.Errorf("converting trx %s: lunchmoney transaction amount cannot be 0", trx.TransactionID)
+		// TODO: return custom error type that can be ignored in the caller instead
+		return nil, nil // ignore transactions with 0 amount
 	}
 
 	if lmTrx.Currency == "" {
