@@ -40,7 +40,9 @@ func syncAccount(
 			return errors.Wrapf(err, "failed to create Lunchmoney transaction for Nordigen transaction %s", trx.TransactionID)
 		}
 
-		lunchmoneyTransactions = append(lunchmoneyTransactions, lmTrx)
+		if lmTrx != nil {
+			lunchmoneyTransactions = append(lunchmoneyTransactions, lmTrx)
+		}
 	}
 
 	for _, trx := range lunchmoneyTransactions {
