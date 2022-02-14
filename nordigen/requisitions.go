@@ -47,6 +47,10 @@ func (c *Client) ListAccounts(ctx context.Context, requisitionID string) (*Accou
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		if err := extractError(resp); err != nil {
+			return nil, errors.Wrap(err, "failed to fetch accounts")
+		}
+
 		return nil, errors.Errorf("received unexpected status code when fetching accounts: %s", resp.Status)
 	}
 

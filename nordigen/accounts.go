@@ -46,6 +46,10 @@ func (c *Client) GetAccountDetails(ctx context.Context, accountID string) (*Acco
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		if err := extractError(resp); err != nil {
+			return nil, errors.Wrap(err, "failed to fetch account details")
+		}
+
 		return nil, errors.Errorf("received unexpected status code when fetching account details: %s", resp.Status)
 	}
 
@@ -91,6 +95,10 @@ func (c *Client) GetAccountBalances(ctx context.Context, accountID string) ([]*B
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		if err := extractError(resp); err != nil {
+			return nil, errors.Wrap(err, "failed to fetch account balances")
+		}
+
 		return nil, errors.Errorf("received unexpected status code when fetching account balances: %s", resp.Status)
 	}
 

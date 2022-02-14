@@ -44,6 +44,10 @@ func (c *Client) authenticate(ctx context.Context) (string, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		if err := extractError(resp); err != nil {
+			return "", errors.Wrap(err, "failed to authenticate")
+		}
+
 		return "", errors.Errorf("received unexpected status code when authenticating: %s", resp.Status)
 	}
 

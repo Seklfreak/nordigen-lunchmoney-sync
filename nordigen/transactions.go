@@ -121,6 +121,10 @@ func (c *Client) Transactions(ctx context.Context, accountID string) (*Transacti
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		if err := extractError(resp); err != nil {
+			return nil, errors.Wrap(err, "failed to fetch transactions")
+		}
+
 		return nil, errors.Errorf("received unexpected status code when fetching transactions: %s", resp.Status)
 	}
 
